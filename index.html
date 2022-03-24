@@ -55,10 +55,8 @@
 
     function add() {
         items.sort();
-        console.log(items);
         for (d = menu.length; d>=0; d=d-1) {
             menu.splice(d-1, 1);
-            console.log("empty array : "+menu);
         };
         for (p = 0; p <= items.length - 1; p++) {
             menu.push("<img src=\'Pizza.png\'><h3>" + items[p] + "</h3><br>");
@@ -68,7 +66,6 @@
             pizza = menu[a];
             document.getElementById("menu").innerHTML = document.getElementById("menu").innerHTML + pizza;
         };
-        console.log(menu.length);
     };
     add();
     document.getElementById("menu").style.display = "block";
