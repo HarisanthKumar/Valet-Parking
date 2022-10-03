@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valet Parking</title>
+</head>
+
+<body onload="start()">
+    <div id="div">
+        <canvas></canvas>
+    </div>
+</body>
+<style>
+    body {
+        margin: 0px;
+        background-color: lawngreen;
+        overflow: hidden;
+    }
+
+    #div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: start;
+        min-height: 100vh;
+    }
+</style>
+<script src="../Common/modal.js"></script>
+<script>
+    var canvas = document.querySelector("canvas");
+    var ctx = canvas.getContext("2d");
+    var canvas_h = 0;
+    var canvas_w = 0;
+    var n_canvas_h = 0;
+    var n_canvas_w = 0;
+    var firstload = true;
+    var loadnum = 0;
+    var speed = 0;
+    var itv = undefined;
+    var itv2 = undefined;
+    var direction = "";
+    var control = "";
+    var gamestatus = "not started";
+    var score = 0;
+    var time = 0;
+    var High_Score = 0;
+    var Min_Time = 0;
+    dgreen = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+        click: false,
+        parked: false
+    };
+    blue = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+        click: false,
+        parked: false
+    };
+    lgreen = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+        click: false,
+        parked: false
+    };
+    mgreen = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+        click: false,
+        parked: false
+    };
+    yellow = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+        click: false,
+        parked: false
+    };
+    vp1 = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0
+    };
+    vp2 = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0
+    };
+    vp3 = {
+        img: undefined,
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0
+    };
+    p_i = {};
+
+    function change() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w;
+        if (canvas.width * 431 / 838 >
+            h) {
+            canvas.height = h;
+            canvas.width = canvas
+                .height * 838 / 431;
+        } else {
+            canvas.height = canvas
+                .width * 431 / 838;
+        };
+        if (firstload == true) {
+            firstload = false;
+            canvas_h = canvas.height;
+            n_canvas_h = canvas.height;
+            canvas_w = canvas.width;
+            n_canvas_w = canvas.width;
+        } else {
+            n_canvas_h = canvas.height;
+            n_canvas_w = canvas.width;
+        };
+        if (gamestatus == "started" || gamestatus == "gameover") {
+            reload();
+        };
+    };
+    change();
+    window.addEventListener("resize", change);
+    canvas.addEventListener("mousedown", m_d);
+    window.addEventListener("keydown", k_d);
+    window.addEventListener("keyup", k_u);
+    function k_d(e) {
+        kd = e.keyCode;
+        if (kd == 37) {
+            direction = "left";
+        };
+        if (kd == 38) {
+            direction = "up";
+        };
+        if (kd == 39) {
+            direction = "right";
+        };
+        if (kd == 40) {
+            direction = "down";
+        };
+    };
+
+    function k_u(e) {
+        kd = e.keyCode;
+        if (kd == 37 && direction == "left") {
+            direction = "";
+        };
+        if (kd == 38 && direction == "up") {
+            direction = "";
+        };
+        if (kd == 39 && direction == "right") {
+            direction = "";
+        };
+        if (kd == 40 && direction == "down") {
+            direction = "";
+        };
+    };
+
+    function m_d(e) {
+        m_x = e.clientX - canvas.offsetLeft;
+        m_y = e.clientY - canvas.offsetTop;
+        if (m_x >= dgreen.x && m_x <= dgreen.x + dgreen.width && m_y >= dgreen.y && m_y <= dgreen.y + dgreen.height) {
+            if (dgreen.click == false && (blue.parked == true || (blue.click == false && blue.parked == false)) && (
+                    lgreen.parked ==
+                    true || (lgreen.click == false && lgreen.parked == false)) && (mgreen.parked == true || (mgreen
+                    .click ==
+                    false && mgreen.parked == false)) && (yellow.parked == true || (yellow.click == false && yellow
+                    .parked ==
+                    false))) {
+                dgreen.click = true;
+            };
+        };
+        if (m_x >= blue.x && m_x <= blue.x + blue.width && m_y >= blue.y && m_y <= blue.y + blue.height) {
+            if (blue.click == false && (dgreen.parked == true || (dgreen.click == false && dgreen.parked == false)) && (
+                    lgreen.parked == true || (lgreen.click == false && lgreen.parked == false)) && (mgreen.parked ==
+                    true || (
+                        mgreen.click == false && mgreen.parked == false)) && (yellow.parked == true || (yellow.click ==
+                    false &&
+                    yellow.parked == false))) {
+                blue.click = true;
+            };
+        };
+        if (m_x >= lgreen.x && m_x <= lgreen.x + lgreen.width && m_y >= lgreen.y && m_y <= lgreen.y + lgreen.height) {
+            if (lgreen.click == false && (blue.parked == true || (blue.click == false && blue.parked == false)) && (
+                    dgreen.parked ==
+                    true || (dgreen.click == false && dgreen.parked == false)) && (mgreen.parked == true || (mgreen
+                    .click ==
+                    false && mgreen.parked == false)) && (yellow.parked == true || (yellow.click == false && yellow
+                    .parked ==
+                    false))) {
+                lgreen.click = true;
+            };
+        };
+        if (m_x >= mgreen.x && m_x <= mgreen.x + mgreen.width && m_y >= mgreen.y && m_y <= mgreen.y + mgreen.height) {
+            if (mgreen.click == false && (blue.parked == true || (blue.click == false && blue.parked == false)) && (
+                    lgreen.parked ==
+                    true || (lgreen.click == false && lgreen.parked == false)) && (dgreen.parked == true || (dgreen
+                    .click ==
+                    false && dgreen.parked == false)) && (yellow.parked == true || (yellow.click == false && yellow
+                    .parked ==
+                    false))) {
+                mgreen.click = true;
+            };
+        };
+        if (m_x >= yellow.x && m_x <= yellow.x + yellow.width && m_y >= yellow.y && m_y <= yellow.y + yellow.height) {
+            if (yellow.click == false && (blue.parked == true || (blue.click == false && blue.parked == false)) && (
+                    lgreen.parked ==
+                    true || (lgreen.click == false && lgreen.parked == false)) && (mgreen.parked == true || (mgreen
+                    .click ==
+                    false && mgreen.parked == false)) && (dgreen.parked == true || (dgreen.click == false && dgreen
+                    .parked ==
+                    false))) {
+                yellow.click = true;
+            };
+        };
+        if (m_x <= vp3.width + vp3.x && m_x >= vp3.x && m_y <= vp3.height + vp3.y && m_y >= vp3.y) {
+            clearInterval(itv);
+            start();
+        };
+    };
+
+    function controls() {
+        if (dgreen.click == true && dgreen.parked == false) {
+            control = "dgreen";
+        } else if (blue.click == true && blue.parked == false) {
+            control = "blue";
+        } else if (lgreen.click == true && lgreen.parked == false) {
+            control = "lgreen";
+        } else if (mgreen.click == true && mgreen.parked == false) {
+            control = "mgreen";
+        } else if (yellow.click == true && yellow.parked == false) {
+            control = "yellow";
+        } else {
+            control = "";
+        };
+        w = 110 / 838 * canvas.width;
+        h = 70 / 431 * canvas.height;
+        if (direction == "left") {
+            if (control == "dgreen") {
+                if (dgreen.x - speed >= 0) {
+                    dgreen.x += -speed;
+                    dgreen.img.src = "../media/29.1.4.png";
+                    dgreen.width = w;
+                    dgreen.height = h;
+                };
+            } else if (control == "blue") {
+                if (blue.x - speed >= 0) {
+                    blue.x += -speed;
+                    blue.img.src = "../media/29.2.4.png";
+                    blue.width = w;
+                    blue.height = h;
+                };
+            } else if (control == "lgreen") {
+                if (lgreen.x - speed >= 0) {
+                    lgreen.x += -speed;
+                    lgreen.img.src = "../media/29.3.4.png";
+                    lgreen.width = w;
+                    lgreen.height = h;
+                };
+            } else if (control == "mgreen") {
+                if (mgreen.x - speed >= 0) {
+                    mgreen.x += -speed;
+                    mgreen.img.src = "../media/29.4.4.png";
+                    mgreen.width = w;
+                    mgreen.height = h;
+                };
+            } else if (control == "yellow") {
+                if (yellow.x - speed >= 0) {
+                    yellow.x += -speed;
+                    yellow.img.src = "../media/29.5.4.png";
+                    yellow.width = w;
+                    yellow.height = h;
+                };
+            };
+        };
+        if (direction == "right") {
+            if (control == "dgreen") {
+                if (dgreen.x + w + speed <= canvas.width) {
+                    dgreen.x += speed;
+                    dgreen.img.src = "../media/29.1.2.png";
+                    dgreen.width = w;
+                    dgreen.height = h;
+                };
+            } else if (control == "blue") {
+                if (blue.x + w + speed <= canvas.width) {
+                    blue.x += speed;
+                    blue.img.src = "../media/29.2.2.png";
+                    blue.width = w;
+                    blue.height = h;
+                };
+            } else if (control == "lgreen") {
+                if (lgreen.x + w + speed <= canvas.width) {
+                    lgreen.x += speed;
+                    lgreen.img.src = "../media/29.3.2.png";
+                    lgreen.width = w;
+                    lgreen.height = h;
+                };
+            } else if (control == "mgreen") {
+                if (mgreen.x + w + speed <= canvas.width) {
+                    mgreen.x += speed;
+                    mgreen.img.src = "../media/29.4.2.png";
+                    mgreen.width = w;
+                    mgreen.height = h;
+                };
+            } else if (control == "yellow") {
+                if (yellow.x + w + speed <= canvas.width) {
+                    yellow.x += speed;
+                    yellow.img.src = "../media/29.5.2.png";
+                    yellow.width = w;
+                    yellow.height = h;
+                };
+            };
+        };
+        if (direction == "up") {
+            if (control == "dgreen") {
+                if (dgreen.y - speed >= 0) {
+                    dgreen.y += -speed;
+                    dgreen.img.src = "../media/29.1.1.png";
+                    dgreen.width = h;
+                    dgreen.height = w;
+                };
+            } else if (control == "blue") {
+                if (blue.y - speed >= 0) {
+                    blue.y += -speed;
+                    blue.img.src = "../media/29.2.1.png";
+                    blue.width = h;
+                    blue.height = w;
+                };
+            } else if (control == "lgreen") {
+                if (lgreen.y - speed >= 0) {
+                    lgreen.y += -speed;
+                    lgreen.img.src = "../media/29.3.1.png";
+                    lgreen.width = h;
+                    lgreen.height = w;
+                };
+            } else if (control == "mgreen") {
+                if (mgreen.y - speed >= 0) {
+                    mgreen.y += -speed;
+                    mgreen.img.src = "../media/29.4.1.png";
+                    mgreen.width = h;
+                    mgreen.height = w;
+                };
+            } else if (control == "yellow") {
+                if (yellow.y - speed >= 0) {
+                    yellow.y += -speed;
+                    yellow.img.src = "../media/29.5.1.png";
+                    yellow.width = h;
+                    yellow.height = w;
+                };
+            };
+        };
+        if (direction == "down") {
+            if (control == "dgreen") {
+                if (dgreen.y + w + speed <= canvas.height) {
+                    dgreen.y += speed;
+                    dgreen.img.src = "../media/29.1.3.png";
+                    dgreen.width = h;
+                    dgreen.height = w;
+                };
+            } else if (control == "blue") {
+                if (blue.y + w + speed <= canvas.height) {
+                    blue.y += speed;
+                    blue.img.src = "../media/29.2.3.png";
+                    blue.width = h;
+                    blue.height = w;
+                };
+            } else if (control == "lgreen") {
+                if (lgreen.y + w + speed <= canvas.height) {
+                    lgreen.y += speed;
+                    lgreen.img.src = "../media/29.3.3.png";
+                    lgreen.width = h;
+                    lgreen.height = w;
+                };
+            } else if (control == "mgreen") {
+                if (mgreen.y + w + speed <= canvas.height) {
+                    mgreen.y += speed;
+                    mgreen.img.src = "../media/29.4.3.png";
+                    mgreen.width = h;
+                    mgreen.height = w;
+                };
+            } else if (control == "yellow") {
+                if (yellow.y + w + speed <= canvas.height) {
+                    yellow.y += speed;
+                    yellow.img.src = "../media/29.5.3.png";
+                    yellow.width = h;
+                    yellow.height = w;
+                };
+            };
+        };
+    };
+
+    function draw_p() {
+        ctx.beginPath();
+        for (x = 0; x <= 5; x++) {
+            ctx.strokeStyle = "rgb(224, 224, 224)";
+            ctx.lineWidth = canvas.width * 1 / 100;
+            ctx.moveTo(p_i.x3 - canvas.width * 1 / 100, p_i.y3);
+            ctx.lineTo(p_i.x3 + canvas.width * 1 / 100, p_i.y3);
+            ctx.moveTo(p_i.x3, p_i.y3);
+            ctx.lineTo(p_i.x2, p_i.y2);
+            ctx.lineTo(p_i.x1, p_i.y1);
+            ctx.lineTo(p_i.x4, p_i.y4);
+            ctx.lineTo(p_i.x4 + canvas.width * 1 / 100, p_i.y4);
+            p_i.x1 += canvas.width * 90 / 838;
+            p_i.x2 += canvas.width * 90 / 838;
+            p_i.x3 += canvas.width * 90 / 838;
+            p_i.x4 += canvas.width * 90 / 838;
+        }
+        8;
+        ctx.stroke();
+        p_i.x1 = canvas.width * 12 / 838;
+        p_i.x2 = canvas.width * 102 / 838;
+        p_i.x3 = canvas.width * 102 / 838;
+        p_i.x4 = canvas.width * 12 / 838;
+        8;
+    };
+
+    function check() {
+        check_i(dgreen, blue, lgreen, mgreen, yellow)
+    };
+
+    function check_i(a, b, c, d, e) {
+        check_i_i(a, b);
+        check_i_i(a, c);
+        check_i_i(a, d);
+        check_i_i(a, e);
+
+        check_i_i(b, a);
+        check_i_i(b, c);
+        check_i_i(b, d);
+        check_i_i(b, e);
+
+        check_i_i(c, a);
+        check_i_i(c, b);
+        check_i_i(c, d);
+        check_i_i(c, e);
+
+        check_i_i(d, a);
+        check_i_i(d, b);
+        check_i_i(d, c);
+        check_i_i(d, e);
+
+        check_i_i(e, a);
+        check_i_i(e, b);
+        check_i_i(e, c);
+        check_i_i(e, d);
+    };
+
+    function check_i_i(h, g) {
+        if (((h.x >= g.x && h.x <= g.x + g.width && h.y >= g.y && h.y <= g.y + g.height) || (h.x + h.width >= g.x && h
+                .x + h.width <= g.x + g.width && h.y >= g.y && h.y <= g.y + g.height) || (h.x + h.width >= g.x && h
+                .x +
+                h.width <= g.x + g.width && h.y + h.height >= g.y && h.y + h.height <=
+                g.y + g.height) || (h.x >= g.x && h.x <= g.x + g.width && h.y + h.height >= g.y && h.y + h.height <=
+                g
+                .y + g.height)) && gamestatus !== "gameover") {
+            gameover("lost");
+        };
+    };
+
+
+    function gameover(q) {
+        gamestatus = "gameover";
+        direction = "";
+        clearInterval(itv);
+        clearInterval(itv2);
+        if (localStorage.getItem("High_Score") == null) {
+            localStorage.setItem("High_Score", score);
+            localStorage.setItem("Min_Time", time);
+        };
+        if (localStorage.getItem("Min_Time") == null) {
+            localStorage.setItem("High_Score", score);
+            localStorage.setItem("Min_Time", time);
+        };
+        High_Score = localStorage.getItem("High_Score");
+        Min_Time = localStorage.getItem("Min_Time");
+        if (score > High_Score) {
+            localStorage.setItem("High_Score", score);
+            localStorage.setItem("Min_Time", time);
+            High_Score = score;
+            Min_Time = time;
+        } else if (score >= High_Score && time < Min_Time) {
+            localStorage.setItem("High_Score", score);
+            localStorage.setItem("Min_Time", time);
+            High_Score = score;
+            Min_Time = time;
+        };
+        setTimeout(
+            function u() {
+                if (q == "lost") {
+                    modal("Game Over", "You Lost !!!<br>Score : " + score + ", Time : " + time +
+                        " secs<br>High Score : " + High_Score + ", Time : " + Min_Time + "secs" +
+                        "<br>Do You Want To Play Again ?", "1");
+                } else {
+                    modal("Game Over", "You Won !!!<br>Score : " + score + ", Time : " + time +
+                        " secs<br>High Score : " + High_Score + ", Time : " + Min_Time + "secs" +
+                        "<br>Do You Want To Play Again ?", "1");
+                }
+            }, 5);
+    };
+
+    function yes() {
+        start();
+        close3();
+    };
+
+    function no() {
+        close3();
+    };
+
+    function check_p() {
+        check_p_i(dgreen, "dgreen");
+        check_p_i(blue, "blue");
+        check_p_i(lgreen, "lgreen");
+        check_p_i(mgreen, "mgreen");
+        check_p_i(yellow, "yellow");
+        score = 0;
+        if (dgreen.parked == true) {
+            score += 1;
+        };
+        if (blue.parked == true) {
+            score += 1;
+        };
+        if (lgreen.parked == true) {
+            score += 1;
+        };
+        if (mgreen.parked == true) {
+            score += 1;
+        };
+        if (yellow.parked == true) {
+            score += 1;
+        };
+        if (score == 5) {
+            gameover("won");
+        };
+    };
+
+    function check_p_i(m, n) {
+        if ((m.x >= p_i.x1 && m.x <= p_i.x2 && m.x + m.width >= p_i.x1 && m.x + m.width <= p_i.x2 && m.y >= p_i
+                .y1 && m.y <= p_i.y3 && m.y + m.height >= p_i.y1 && m.y + m.height <= p_i.y3) ||
+            (m.x >= p_i.x1 + canvas.width * 90 / 838 && m.x <= p_i.x2 + canvas.width * 90 / 838 && m.x + m.width >=
+                p_i.x1 + canvas.width * 90 / 838 && m.x + m.width <= p_i.x2 + canvas.width * 90 / 838 && m.y >= p_i
+                .y1 && m.y <= p_i.y3 && m.y + m.height >= p_i.y1 && m.y + m.height <= p_i.y3) ||
+            (m.x >= p_i.x1 + canvas.width * 180 / 838 && m.x <= p_i.x2 + canvas.width * 180 / 838 && m.x + m
+                .width >= p_i.x1 + canvas.width * 180 / 838 && m.x + m.width <= p_i.x2 + canvas.width * 180 / 838 &&
+                m.y >= p_i.y1 && m.y <= p_i.y3 && m.y + m.height >= p_i.y1 && m.y + m.height <= p_i.y3) ||
+            (m.x >= p_i.x1 + canvas.width * 270 / 838 && m.x <= p_i.x2 + canvas.width * 270 / 838 && m.x + m
+                .width >= p_i.x1 + canvas.width * 270 / 838 && m.x + m.width <= p_i.x2 + canvas.width * 270 / 838 &&
+                m.y >= p_i.y1 && m.y <= p_i.y3 && m.y + m.height >= p_i.y1 && m.y + m.height <= p_i.y3) ||
+            (m.x >= p_i.x1 + canvas.width * 360 / 838 && m.x <= p_i.x2 + canvas.width * 360 / 838 && m.x + m
+                .width >= p_i.x1 + canvas.width * 360 / 838 && m.x + m.width <= p_i.x2 + canvas.width * 360 / 838 &&
+                m.y >= p_i.y1 && m.y <= p_i.y3 && m.y + m.height >= p_i.y1 && m.y + m.height <= p_i.y3) ||
+            (m.x >= p_i.x1 + canvas.width * 450 / 838 && m.x <= p_i.x2 + canvas.width * 450 / 838 && m.x + m
+                .width >= p_i.x1 + canvas.width * 450 / 838 && m.x + m.width <= p_i.x2 + canvas.width * 450 / 838 &&
+                m.y >= p_i.y1 && m.y <= p_i.y3 && m.y + m.height >= p_i.y1 && m.y + m.height <= p_i.y3)) {
+            if (n == "dgreen") {
+                dgreen.parked = true;
+            } else if (n == "blue") {
+                blue.parked = true;
+            } else if (n == "lgreen") {
+                lgreen.parked = true;
+            } else if (n == "mgreen") {
+                mgreen.parked = true;
+            } else if (n == "yellow") {
+                yellow.parked = true;
+            };
+        };
+    };
+
+    function start() {
+        time = 0;
+        score = 0;
+        gamestatus = "started"
+        loadnum = 0;
+        dgreen.img = new Image();
+        dgreen.img.src = "../media/29.1.4.png";
+        dgreen.img.onload = load();
+        blue.img = new Image();
+        blue.img.src = "../media/29.2.4.png";
+        blue.img.onload = load();
+        lgreen.img = new Image();
+        lgreen.img.src = "../media/29.3.4.png";
+        lgreen.img.onload = load();
+        mgreen.img = new Image();
+        mgreen.img.src = "../media/29.4.4.png";
+        mgreen.img.onload = load();
+        yellow.img = new Image();
+        yellow.img.src = "../media/29.5.4.png";
+        yellow.img.onload = load();
+        canvasbg = new Image();
+        canvasbg.src = "../media/29.6.png";
+        canvasbg.onload = load();
+        vp1.img = new Image();
+        vp1.img.src = "../media/29.7.1.png";
+        vp1.img.onload = load();
+        vp2.img = new Image();
+        vp2.img.src = "../media/29.7.2.png";
+        vp2.img.onload = load();
+        vp3.img = new Image();
+        vp3.img.src = "../media/29.7.5.png";
+        vp3.img.onload = load();
+    };
+
+    function load() {
+        loadnum += 1;
+        if (loadnum == 9) {
+            w = 110 / 838 * canvas.width;
+            h = 70 / 431 * canvas.height;
+            dgreen.parked = false;
+            blue.parked = false;
+            mgreen.parked = false;
+            lgreen.parked = false;
+            yellow.parked = false;
+            dgreen.width = w;
+            dgreen.height = h;
+            dgreen.x = canvas.width + dgreen.width;
+            dgreen.y = canvas.height * 289 / 431;
+            blue.width = w;
+            blue.height = h;
+            blue.x = canvas.width + 4 * dgreen.width;
+            blue.y = canvas.height * 289 / 431;
+            lgreen.width = w;
+            lgreen.height = h;
+            lgreen.x = canvas.width + 7 * dgreen.width;
+            lgreen.y = canvas.height * 289 / 431;
+            mgreen.width = w;
+            mgreen.height = h;
+            mgreen.x = canvas.width + 10 * dgreen.width;
+            mgreen.y = canvas.height * 289 / 431;
+            yellow.width = w;
+            yellow.height = h;
+            yellow.x = canvas.width + 13 * dgreen.width;
+            yellow.y = canvas.height * 289 / 431;
+            vp1.height = canvas.height * 40 / 431;
+            vp1.width = canvas.width * 215 / 838;
+            vp1.x = canvas.width / 2 - vp1.width / 2;
+            vp1.y = canvas.height * 3 / 100;
+            vp2.height = canvas.height * 39 / 431;
+            vp2.x = canvas.width * 2 / 100;
+            vp2.width = canvas.width * 279 / 431;
+            vp2.y = canvas.height * 740 / 838;
+            vp3.height = canvas.height * 40 / 431;
+            vp3.width = canvas.width * 100 / 838;
+            vp3.x = canvas.width - vp3.width - vp3.width * 15 / 100;
+            vp3.y = canvas.height * 380 / 431;
+            dgreen.click = false;
+            blue.click = false;
+            lgreen.click = false;
+            mgreen.click = false;
+            yellow.click = false;
+            p_i.x1 = canvas.width * 12 / 833;
+            p_i.y1 = canvas.height * 82 / 428;
+            p_i.x2 = canvas.width * 102 / 833;
+            p_i.y2 = canvas.height * 82 / 428;
+            p_i.x3 = canvas.width * 102 / 833;
+            p_i.y3 = canvas.height * 216 / 428;
+            p_i.x4 = canvas.width * 12 / 833;
+            p_i.y4 = canvas.height * 216 / 428;
+            ctx.drawImage(canvasbg, 0, 0, canvas.width, canvas.height);
+            draw_p();
+            ctx.drawImage(dgreen.img, dgreen.x, dgreen.y, dgreen.width, dgreen.height);
+            ctx.drawImage(blue.img, blue.x, blue.y, blue.width, blue.height);
+            ctx.drawImage(lgreen.img, lgreen.x, lgreen.y, lgreen.width, lgreen.height);
+            ctx.drawImage(mgreen.img, mgreen.x, mgreen.y, mgreen.width, mgreen.height);
+            ctx.drawImage(yellow.img, yellow.x, yellow.y, yellow.width, yellow.height);
+            ctx.drawImage(vp1.img, vp1.x, vp1.y, vp1.width, vp1.height);
+            ctx.drawImage(vp2.img, vp2.x, vp2.y, vp2.width, vp2.height);
+            ctx.drawImage(vp3.img, vp3.x, vp3.y, vp3.width, vp3.height);
+            auto_move();
+        };
+    };
+
+    function reload() {
+        if (canvas_h !== n_canvas_h || canvas_w !== n_canvas_w) {
+            dgreen.height = dgreen.height * n_canvas_h / canvas_h;
+            dgreen.width = dgreen.width * n_canvas_w / canvas_w;
+            dgreen.x = dgreen.x * n_canvas_w / canvas_w;
+            dgreen.y = dgreen.y * n_canvas_h / canvas_h;
+            blue.height = blue.height * n_canvas_h / canvas_h;
+            blue.width = blue.width * n_canvas_w / canvas_w;
+            blue.x = blue.x * n_canvas_w / canvas_w;
+            blue.y = blue.y * n_canvas_h / canvas_h;
+            lgreen.height = lgreen.height * n_canvas_h / canvas_h;
+            lgreen.width = lgreen.width * n_canvas_w / canvas_w;
+            lgreen.x = lgreen.x * n_canvas_w / canvas_w;
+            lgreen.y = lgreen.y * n_canvas_h / canvas_h;
+            mgreen.height = mgreen.height * n_canvas_h / canvas_h;
+            mgreen.width = mgreen.width * n_canvas_w / canvas_w;
+            mgreen.x = mgreen.x * n_canvas_w / canvas_w;
+            mgreen.y = mgreen.y * n_canvas_h / canvas_h;
+            yellow.height = yellow.height * n_canvas_h / canvas_h;
+            yellow.width = yellow.width * n_canvas_w / canvas_w;
+            yellow.x = yellow.x * n_canvas_w / canvas_w;
+            yellow.y = yellow.y * n_canvas_h / canvas_h;
+            vp1.x = vp1.x * n_canvas_w / canvas_w;
+            vp2.x = vp2.x * n_canvas_w / canvas_w;
+            vp3.x = vp3.x * n_canvas_w / canvas_w;
+            vp1.y = vp1.y * n_canvas_h / canvas_h;
+            vp2.y = vp2.y * n_canvas_h / canvas_h;
+            vp3.y = vp3.y * n_canvas_h / canvas_h;
+            vp1.width = vp1.width * n_canvas_w / canvas_w;
+            vp2.width = vp2.width * n_canvas_w / canvas_w;
+            vp3.width = vp3.width * n_canvas_w / canvas_w;
+            vp1.height = vp1.height * n_canvas_h / canvas_h;
+            vp2.height = vp2.height * n_canvas_h / canvas_h;
+            vp3.height = vp3.height * n_canvas_h / canvas_h;
+            canvas_h = n_canvas_h;
+            canvas_w = n_canvas_w;
+            p_i.x1 = canvas.width * 12 / 833;
+            p_i.y1 = canvas.height * 82 / 428;
+            p_i.x2 = canvas.width * 102 / 833;
+            p_i.y2 = canvas.height * 82 / 428;
+            p_i.x3 = canvas.width * 102 / 833;
+            p_i.y3 = canvas.height * 216 / 428;
+            p_i.x4 = canvas.width * 12 / 833;
+            p_i.y4 = canvas.height * 216 / 428;
+        };
+        ctx.drawImage(canvasbg, 0, 0, canvas.width, canvas.height);
+        draw_p();
+        ctx.drawImage(dgreen.img, dgreen.x, dgreen.y, dgreen.width, dgreen.height);
+        ctx.drawImage(blue.img, blue.x, blue.y, blue.width, blue.height);
+        ctx.drawImage(lgreen.img, lgreen.x, lgreen.y, lgreen.width, lgreen.height);
+        ctx.drawImage(mgreen.img, mgreen.x, mgreen.y, mgreen.width, mgreen.height);
+        ctx.drawImage(yellow.img, yellow.x, yellow.y, yellow.width, yellow.height);
+        ctx.drawImage(vp1.img, vp1.x, vp1.y, vp1.width, vp1.height);
+        ctx.drawImage(vp2.img, vp2.x, vp2.y, vp2.width, vp2.height);
+        ctx.drawImage(vp3.img, vp3.x, vp3.y, vp3.width, vp3.height);
+    };
+
+    function auto_move() {
+        itv2 = setInterval(function some2() {
+            time += 1;
+        }, 1000);
+        itv = setInterval(function some() {
+            speed = canvas.width / 600;
+            if (dgreen.click == false) {
+                dgreen.x += -speed;
+                if (dgreen.x + dgreen.width <= 0) {
+                    if (yellow.click == false) {
+                        if (yellow.x + yellow.width * 3 >= canvas.width) {
+                            dgreen.x = yellow.x + yellow.width * 3;
+                        } else {
+                            dgreen.x = canvas.width;
+                        };
+                    } else if (mgreen.click == false) {
+                        if (mgreen.x + mgreen.width * 3 >= canvas.width) {
+                            dgreen.x = mgreen.x + mgreen.width * 3;
+                        } else {
+                            dgreen.x = canvas.width;
+                        };
+                    } else if (lgreen.click == false) {
+                        if (lgreen.x + lgreen.width * 3 >= canvas.width) {
+                            dgreen.x = lgreen.x + lgreen.width * 3;
+                        } else {
+                            dgreen.x = canvas.width;
+                        };
+                    } else if (blue.click == false) {
+                        if (blue.x + blue.width * 3 >= canvas.width) {
+                            dgreen.x = blue.x + blue.width * 3;
+                        } else {
+                            dgreen.x = canvas.width;
+                        };
+                    } else {
+                        dgreen.x = canvas.width;
+                    };
+                };
+            };
+            if (blue.click == false) {
+                blue.x += -speed;
+                if (blue.x + blue.width <= 0) {
+                    if (dgreen.click == false) {
+                        if (dgreen.x + dgreen.width * 3 >= canvas.width) {
+                            blue.x = dgreen.x + dgreen.width * 3;
+                        } else {
+                            blue.x = canvas.width;
+                        };
+                    } else if (yellow.click == false) {
+                        if (yellow.x + yellow.width * 3 >= canvas.width) {
+                            blue.x = yellow.x + yellow.width * 3;
+                        } else {
+                            blue.x = canvas.width;
+                        };
+                    } else if (mgreen.click == false) {
+                        if (mgreen.x + mgreen.width * 3 >= canvas.width) {
+                            blue.x = mgreen.x + mgreen.width * 3;
+                        } else {
+                            blue.x = canvas.width;
+                        };
+                    } else if (lgreen.click == false) {
+                        if (lgreen.x + lgreen.width * 3 >= canvas.width) {
+                            blue.x = lgreen.x + lgreen.width * 3;
+                        } else {
+                            blue.x = canvas.width;
+                        };
+                    } else {
+                        blue.x = canvas.width;
+                    };
+                };
+            };
+            if (lgreen.click == false) {
+                lgreen.x += -speed;
+                if (lgreen.x + lgreen.width <= 0) {
+                    if (blue.click == false) {
+                        if (blue.x + blue.width * 3 >= canvas.width) {
+                            lgreen.x = blue.x + blue.width * 3;
+                        } else {
+                            lgreen.x = canvas.width;
+                        };
+                    } else if (dgreen.click == false) {
+                        if (dgreen.x + dgreen.width * 3 >= canvas.width) {
+                            lgreen.x = dgreen.x + dgreen.width * 3;
+                        } else {
+                            lgreen.x = canvas.width;
+                        };
+                    } else if (yellow.click == false) {
+                        if (yellow.x + yellow.width * 3 >= canvas.width) {
+                            lgreen.x = yellow.x + yellow.width * 3;
+                        } else {
+                            lgreen.x = canvas.width;
+                        };
+                    } else if (mgreen.click == false) {
+                        if (mgreen.x + mgreen.width * 3 >= canvas.width) {
+                            lgreen.x = mgreen.x + mgreen.width * 3;
+                        } else {
+                            lgreen.x = canvas.width;
+                        };
+                    } else {
+                        lgreen.x = canvas.width;
+                    };
+                };
+            };
+            if (mgreen.click == false) {
+                mgreen.x += -speed;
+                if (mgreen.x + mgreen.width <= 0) {
+                    if (lgreen.click == false) {
+                        if (lgreen.x + lgreen.width * 3 >= canvas.width) {
+                            mgreen.x = lgreen.x + lgreen.width * 3;
+                        } else {
+                            mgreen.x = canvas.width;
+                        };
+                    } else if (blue.click == false) {
+                        if (blue.x + blue.width * 3 >= canvas.width) {
+                            mgreen.x = blue.x + blue.width * 3;
+                        } else {
+                            mgreen.x = canvas.width;
+                        };
+                    } else if (dgreen.click == false) {
+                        if (dgreen.x + dgreen.width * 3 >= canvas.width) {
+                            mgreen.x = dgreen.x + dgreen.width * 3;
+                        } else {
+                            mgreen.x = canvas.width;
+                        };
+                    } else if (yellow.click == false) {
+                        if (yellow.x + yellow.width * 3 >= canvas.width) {
+                            mgreen.x = yellow.x + yellow.width * 3;
+                        } else {
+                            mgreen.x = canvas.width;
+                        };
+                    } else {
+                        mgreen.x = canvas.width;
+                    };
+                };
+            };
+            if (yellow.click == false) {
+                yellow.x += -speed;
+                if (yellow.x + yellow.width <= 0) {
+                    if (mgreen.click == false) {
+                        if (mgreen.x + mgreen.width * 3 >= canvas.width) {
+                            yellow.x = mgreen.x + mgreen.width * 3;
+                        } else {
+                            yellow.x = canvas.width;
+                        };
+                    } else if (lgreen.click == false) {
+                        if (lgreen.x + lgreen.width * 3 >= canvas.width) {
+                            yellow.x = lgreen.x + lgreen.width * 3;
+                        } else {
+                            yellow.x = canvas.width;
+                        };
+                    } else if (blue.click == false) {
+                        if (blue.x + blue.width * 3 >= canvas.width) {
+                            yellow.x = blue.x + blue.width * 3;
+                        } else {
+                            yellow.x = canvas.width;
+                        };
+                    } else if (dgreen.click == false) {
+                        if (dgreen.x + dgreen.width * 3 >= canvas.width) {
+                            yellow.x = dgreen.x + dgreen.width * 3;
+                        } else {
+                            yellow.x = canvas.width;
+                        };
+                    } else {
+                        yellow.x = canvas.width;
+                    };
+                };
+            };
+            controls();
+            reload();
+            check();
+            check_p();
+        }, 1);
+    };
+</script>
+
+</html>
